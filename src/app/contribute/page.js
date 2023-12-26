@@ -1,6 +1,6 @@
 "use client";
 import { invoke } from '@tauri-apps/api/tauri'
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useState, useReducer } from 'react';
 
 const Status = {
     None: 0,
@@ -15,6 +15,7 @@ function numberWithCommas(val) {
 
 export default function Home() {
     const [serverAddress, setAddress] = useState("");
+    const [busy, setBusy] = useState(false);
     const [status, dispatch] = useReducer((status, action) => {
         const ret = { ...status };
 
@@ -46,6 +47,14 @@ export default function Home() {
                 }
                 break;
 
+            case "status_reset":
+                ret.status = Status.None;
+                if (ret.ws) {
+                    ret.ws.close();
+                    ret.ws = null;
+                }
+                break;
+
             case "new_translation":
                 ret.request = action.request;
                 ret.translation = action.translation;
@@ -58,13 +67,16 @@ export default function Home() {
 
     if (status.ws) {
         status.ws.onopen = () => dispatch({ type: "status_change" });
+
         status.ws.onmessage = async msg => {
             if (status.status == Status.Stopping) {
                 dispatch({ type: "status_change" });
                 return;
             }
 
+            setBusy(true);
             let translation = await invoke('create_translation_response', { inputString: msg.data }).catch(alert);
+            setBusy(false);
             status.ws.send(translation[0]);
             dispatch({ type: "new_translation", request: msg.data, translation: translation[1] });
 
@@ -72,12 +84,21 @@ export default function Home() {
                 dispatch({ type: "status_change" });
             }
         };
+
+        const errorHandler = () => {
+            if (status.status == Status.Connecting || status.status == Status.Contributing) {
+                alert("WebSocket connection failed");
+                dispatch({ type: busy ? "status_change" : "status_reset" });
+            }
+        };
+        status.ws.onerror = errorHandler;
+        status.ws.onclose = errorHandler;
     }
 
     function getClass(status) {
         switch (status) {
-            case Status.None: return "bg-teal-600 hover:bg-teal-700 focus:ring-4 focus:outline-none focus:ring-green-300";
-            case Status.Connecting: return "bg-teal-600 hover:bg-teal-700 focus:ring-4 focus:outline-none focus:ring-green-300 opacity-50";
+            case Status.None: return "bg-teal-600 hover:bg-teal-700 focus:ring-4 focus:outline-none focus:ring-teal-300";
+            case Status.Connecting: return "bg-teal-600 hover:bg-teal-700 focus:ring-4 focus:outline-none focus:ring-teal-300 opacity-50";
             case Status.Contributing: return "bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300";
             case Status.Stopping: return "bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 opacity-50";
         }
@@ -93,7 +114,7 @@ export default function Home() {
     }
 
     return (
-        <div className="m-0 p-0 h-full w-full justify-center flex bg-gradient-to-tr from-orange-200 to-blue-200 to-65%">
+        <div className="m-0 p-0 h-full w-full justify-center flex">
             <div className="p-5 flex-col box-border text-center justify-center flex">
                 <h1 className="text-4xl font-bold p-3">Press start to begin <span className="before:block before:absolute before:-inset-1 before:-skew-y-3 before:bg-orange-500 relative inline-block">
                     <span className="relative text-white">contributing</span>
@@ -105,7 +126,7 @@ export default function Home() {
                     }} className="mx-2 bg-gray-50 ring-1 ring-slate-900/5 shadow-lg text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5" disabled={status.status == Status.Connecting || status.status == Status.Stopping}></input>
                     <button onClick={async e => {
                         e.preventDefault();
-                        dispatch({ type: "status_change" });
+                        dispatch({ type: status.status == Status.Contributing && !busy ? "status_reset" : "status_change" });
                     }} type="submit" className={"ring-1 ring-slate-900/5 shadow-lg text-white font-medium rounded-lg text-sm px-5 py-1 text-center " + (getClass(status.status))}>{getButtonLabel(status.status)}</button>
                 </form>
                 {(status.status == Status.Contributing || status.status == Status.Stopping) && <div className="flex justify-center">

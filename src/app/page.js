@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 import Progress from './progress.js';
 import { invoke } from '@tauri-apps/api/tauri'
 import { open } from '@tauri-apps/api/dialog';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const Options = {
     Install: 0,
@@ -21,7 +21,7 @@ export default function Home() {
     const iconClassName = "stroke-orange-500 w-6 h-6 " + (loadingState.loading ? "" : "group-hover:stroke-white");
 
     return (
-        <div className="m-0 p-0 h-full w-full justify-center flex bg-gradient-to-tr from-orange-200 to-blue-200 to-65%">
+        <div className="m-0 p-0 h-full w-full justify-center flex">
             <div className="p-5 flex-col box-border text-center justify-center flex">
                 <h1 className="text-4xl font-bold p-3">First, install or open a <span className="before:block before:absolute before:-inset-1 before:-skew-y-3 before:bg-orange-500 relative inline-block ">
                     <span className="relative text-white">model file</span>

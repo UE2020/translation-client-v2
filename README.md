@@ -1,2 +1,2 @@
 # Translation Contribution Client
-Binaries coming soon.
+Binaries are available in the releases section.

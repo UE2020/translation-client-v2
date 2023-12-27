@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 import Progress from './progress.js';
 import { invoke } from '@tauri-apps/api/tauri'
 import { open } from '@tauri-apps/api/dialog';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Options = {
     Install: 0,
@@ -12,14 +12,25 @@ const Options = {
 };
 
 export default function Home() {
-    const router = useRouter()
+    const router = useRouter();
     const [loadingState, setLoadingState] = useState({
         loading: false,
         chosenOption: Options.None,
     });
+    const [availableMemory, setAvailableMemory] = useState(0);
+
+    useEffect(() => {
+        const updateAvailableMemory = async () => {
+            setAvailableMemory(await invoke('get_memory'));
+        };
+
+        updateAvailableMemory();
+        const interval = setInterval(updateAvailableMemory, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const iconClassName = "stroke-orange-500 w-6 h-6 " + (loadingState.loading ? "" : "group-hover:stroke-white");
-
     return (
         <div className="m-0 p-0 h-full w-full justify-center flex">
             <div className="p-5 flex-col box-border text-center justify-center flex">
@@ -27,6 +38,8 @@ export default function Home() {
                     <span className="relative text-white">model file</span>
                 </span></h1>
                 <p className="mt-2 text-lg">Already have the <strong>quantized</strong> <a target="_blank" href="https://huggingface.co/lmz/candle-mistral" className="text-orange-600 dark:text-orange-500 hover:underline">weights</a> installed? Load them here.</p>
+                <p className="mt-2 text-lg">Avoid loading the model unless you have at least 4 GB of memory available.</p>
+                <p className="mt-2 text-lg">You currently have <strong>{(Math.round(availableMemory / 1e+8) / 10).toFixed(1)} GB</strong> available.</p>
                 <div className="flex flex-col sm:flex-row justify-center">
                     <div className="my-2 sm:my-4 mr-0 sm:mr-4">
                         <Button disabled={loadingState.loading} onClick={async () => {

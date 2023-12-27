@@ -259,9 +259,9 @@ pub async fn create_translation_response(
         let test = message.clone() + &nonce.to_string();
         let digest = digest::digest(&digest::SHA256, test.as_bytes());
         let digest = digest.as_ref();
-        let first_32_bits =
+        let first_24_bits =
             ((digest[0] as i32) << 16) | ((digest[1] as i32) << 8) | digest[2] as i32;
-        if first_32_bits == 0 || (first_32_bits << 8).leading_zeros() >= 20 {
+        if first_24_bits == 0 || (first_24_bits << 8).leading_zeros() >= 20 {
             break Ok([test, translation.to_owned()]);
         }
         nonce += 1;

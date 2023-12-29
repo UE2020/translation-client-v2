@@ -39,8 +39,8 @@ export default function ProgressBar() {
     }
     return (
         <div className="my-2 flex justify-center">
-            <div className="w-5/6 bg-orange-300 rounded-full shadow-lg box-border w-full relative">
-                <div className="bg-orange-500 text-xs font-medium text-black text-center p-0.5 leading-none rounded-full h-6 opacity-80 font-mono" style={{ width: `max(${progress.percentage}%, 1.5rem)`}}><p className="absolute m-0 top-2/4 -inset-x-0 -translate-y-1/2">{`${progress.percentage.toFixed(2)}% - ${(progress.downloaded/1e+6).toFixed(2)}/${(progress.downloadSize/1e+6).toFixed(2)} MB`}</p></div>
+            <div className="bg-sky-300 rounded-full shadow-lg box-border w-full relative">
+                <div className="bg-sky-500 text-xs font-medium text-black text-center p-0.5 leading-none rounded-full h-6 opacity-80 font-mono" style={{ width: `max(${progress.percentage}%, 1.5rem)`}}><p className="absolute m-0 top-2/4 -inset-x-0 -translate-y-1/2">{`${progress.percentage.toFixed(2)}% - ${(progress.downloaded/1e+6).toFixed(2)}/${(progress.downloadSize/1e+6).toFixed(2)} MB`}</p></div>
             </div>
         </div>
     )

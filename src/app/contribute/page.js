@@ -1,6 +1,6 @@
 "use client";
 import { invoke } from '@tauri-apps/api/tauri'
-import React, { useState, useReducer } from 'react';
+import React, { useState, useReducer, useRef } from 'react';
 
 const Status = {
     None: 0,
@@ -14,6 +14,7 @@ function numberWithCommas(val) {
 }
 
 export default function Home() {
+    const outerDiv = useRef(null);
     const [serverAddress, setAddress] = useState("");
     const [busy, setBusy] = useState(false);
     const [status, dispatch] = useReducer((status, action) => {
@@ -116,13 +117,13 @@ export default function Home() {
     }
 
     return (
-        <div className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-[url(/grid.svg)]">
-            <div className="p-5 flex-col box-border text-center justify-center flex">
-                <h1 className="text-4xl font-bold p-3">Press start to begin <span className="before:block before:absolute before:-inset-1 before:-skew-y-3 before:bg-sky-500 relative inline-block">
+        <div className="w-full flex min-h-screen justify-center overflow-hidden bg-[url(/grid.svg)]">
+            <div ref={outerDiv} className="p-5 flex-col box-border text-center justify-center flex sm:w-min">
+                <h1 className="text-4xl font-bold p-3 sm:whitespace-nowrap">Press start to begin <span className="before:block before:absolute before:-inset-1 before:-skew-y-3 before:bg-sky-500 relative inline-block">
                     <span className="relative text-white">contributing</span>
                 </span></h1>
                 <p className="mt-2 text-lg">You may enter an alternative translation server address if needed.</p>
-                <form className="flex justify-center m-5">
+                <form className="flex justify-center my-5">
                     <input onChange={e => {
                         setAddress(e.target.value);
                     }} className="mx-2 bg-gray-50 ring-1 ring-slate-900/5 shadow-lg text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5" disabled={status.status == Status.Connecting || status.status == Status.Stopping}></input>
@@ -131,9 +132,10 @@ export default function Home() {
                         dispatch({ type: status.status == Status.Contributing && !busy ? "status_reset" : "status_change" });
                     }} type="submit" className={"ring-1 ring-slate-900/5 shadow-lg text-white font-medium rounded-lg text-sm px-5 py-1 text-center " + (getClass(status.status))}>{getButtonLabel(status.status)}</button>
                 </form>
-                {(status.status == Status.Contributing || status.status == Status.Stopping) && <div className="flex justify-center">
-                    <span className="relative text-left max-w-lg">
-                        <div className="p-6 bg-white rounded-lg shadow-lg ring-1 ring-slate-900/5">
+
+                {(status.status == Status.Contributing || status.status == Status.Stopping) && <div className="justify-center box-border inline-block">
+                    <div className="relative text-left">
+                        <div className="p-6 bg-white rounded-lg shadow-lg ring-1 ring-slate-900/5 box-border">
                             <h5 className="mb-2 text-xl font-bold tracking-tight text-gray-900">Contribution Statistics</h5>
                             <p className="text-sm font-normal text-gray-700"><strong>Translations done:</strong> {numberWithCommas(status.translationsDone)}</p>
                             <p className="text-sm font-normal text-gray-700"><strong>Translations per minute:</strong> {numberWithCommas((status.translationsDone / ((Date.now() - status.startTime) / 60000)).toFixed(3))}</p>
@@ -146,7 +148,7 @@ export default function Home() {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-600 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-3 w-3 bg-green-600"></span>
                         </span>
-                    </span>
+                    </div>
                 </div>}
             </div>
         </div>

@@ -32,8 +32,8 @@ export default function Home() {
 
     const iconClassName = "stroke-sky-500 w-6 h-6 " + (loadingState.loading ? "" : "group-hover:stroke-white");
     return (
-        <div className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-[url(/grid.svg)]">
-            <div className="p-5 flex-col box-border text-center justify-center flex">
+        <div className="w-full flex min-h-screen justify-center overflow-hidden bg-[url(/grid.svg)]">
+            <div className="p-5 flex-col box-border text-center justify-center flex w-fit">
                 <h1 className="text-4xl font-bold p-3">First, install or open a <span className="before:block before:absolute before:-inset-1 before:-skew-y-3 before:bg-sky-500 relative inline-block ">
                     <span className="relative text-white">model file</span>
                 </span></h1>

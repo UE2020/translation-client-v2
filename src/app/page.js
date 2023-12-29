@@ -30,16 +30,16 @@ export default function Home() {
         return () => clearInterval(interval);
     }, []);
 
-    const iconClassName = "stroke-orange-500 w-6 h-6 " + (loadingState.loading ? "" : "group-hover:stroke-white");
+    const iconClassName = "stroke-sky-500 w-6 h-6 " + (loadingState.loading ? "" : "group-hover:stroke-white");
     return (
-        <div className="m-0 p-0 h-full w-full justify-center flex">
+        <div className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-[url(/grid.svg)]">
             <div className="p-5 flex-col box-border text-center justify-center flex">
-                <h1 className="text-4xl font-bold p-3">First, install or open a <span className="before:block before:absolute before:-inset-1 before:-skew-y-3 before:bg-orange-500 relative inline-block ">
+                <h1 className="text-4xl font-bold p-3">First, install or open a <span className="before:block before:absolute before:-inset-1 before:-skew-y-3 before:bg-sky-500 relative inline-block ">
                     <span className="relative text-white">model file</span>
                 </span></h1>
-                <p className="mt-2 text-lg">Already have the <strong>quantized</strong> <a target="_blank" href="https://huggingface.co/lmz/candle-mistral" className="text-orange-600 dark:text-orange-500 hover:underline">weights</a> installed? Load them here.</p>
-                <p className="mt-2 text-lg">Avoid loading the model unless you have at least 4 GB of memory available.</p>
-                <p className="mt-2 text-lg">You currently have <strong>{(Math.round(availableMemory / 1e+8) / 10).toFixed(1)} GB</strong> available.</p>
+                <p className="mt-2">Already have the <strong>quantized</strong> <a target="_blank" href="https://huggingface.co/lmz/candle-mistral" className="text-sky-900 hover:underline">weights</a> installed? Load them here.</p>
+                <p className="mt-2">Avoid loading the model unless you have at least 4 GB of memory available.</p>
+                <p className="mt-2">You currently have <strong>{(Math.round(availableMemory / 1e+8) / 10).toFixed(1)} GB</strong> available.</p>
                 <div className="flex flex-col sm:flex-row justify-center">
                     <div className="my-2 sm:my-4 mr-0 sm:mr-4">
                         <Button disabled={loadingState.loading} onClick={async () => {
@@ -58,7 +58,7 @@ export default function Home() {
                             });
                             if (caught) return;
                             router.push('/contribute');
-                        }} description="Installs the model and loads it for you. If you previously used this option, use it again." icon={loadingState.chosenOption == Options.Install ? <svg className="animate-spin h-6 w-6 text-orange-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        }} description="Installs the model and loads it for you. If you previously used this option, use it again." icon={loadingState.chosenOption == Options.Install ? <svg className="animate-spin h-6 w-6 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg> : <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={iconClassName}>
@@ -83,8 +83,8 @@ export default function Home() {
                                 caught = true;
                             });
                             if (caught) return;
-                            router.push('/contribute');
-                        }} description="Pick your own weights file. Only 4-bit quantized Mistral models are supported. Use if you know what you are doing." icon={loadingState.chosenOption == Options.Load ? <svg className="animate-spin h-6 w-6 text-orange-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            router.push('/contribute.html');
+                        }} description="Pick your own weights file. Only 4-bit quantized Mistral models are supported. Use if you know what you are doing." icon={loadingState.chosenOption == Options.Load ? <svg className="animate-spin h-6 w-6 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg> : <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={iconClassName}>
@@ -100,7 +100,7 @@ export default function Home() {
 }
 
 function Button({ disabled, onClick, description, icon, children }) {
-    return <a onClick={disabled ? null : onClick} type="button" href="#" className={"group block mx-auto rounded-lg p-4 bg-white ring-1 ring-slate-900/5 shadow-lg space-y-3 text-left justify-center w-full sm:max-w-xs " + (disabled ? "opacity-50" : "active:bg-orange-600 hover:ring-orange-500 hover:bg-orange-500")}>
+    return <a onClick={disabled ? null : onClick} type="button" href="#" className={"group block mx-auto rounded-lg p-4 bg-white ring-1 ring-slate-900/5 shadow-lg space-y-3 text-left justify-center w-full sm:max-w-xs " + (disabled ? "opacity-50" : "active:bg-sky-600 hover:ring-sky-500 hover:bg-sky-500")}>
         <div className="flex items-center space-x-3">
             {icon}
             <h3 className={"text-sm text-slate-900 font-semibold " + (disabled ? "" : "group-hover:text-white")}>{children}</h3>

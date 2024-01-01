@@ -245,7 +245,7 @@ pub async fn create_translation_response(
     input_string: String,
 ) -> Result<[String; 2], String> {
     let mut state = state.0.lock().unwrap();
-    let translation = state.pipeline.as_mut().expect("pipeline should be initialized").run(&format!("TASK: Translate Latin sentences to English sentences.\n\nLatin: {}\nEnglish translation:", input_string.trim()), 140 * 3).map_err(|e| e.to_string())?;
+    let translation = state.pipeline.as_mut().expect("pipeline should be initialized").run(&format!("Latin: Puer canem vult.\nEnglish: The boy wants a dog.\nLatin: {}\nEnglish:", input_string.trim()), 140 * 3).map_err(|e| e.to_string())?;
     use ring::digest;
     use urlencoding::encode;
     let now = SystemTime::now()

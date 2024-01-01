@@ -130,7 +130,7 @@ export default function Home() {
                     <button onClick={async e => {
                         e.preventDefault();
                         dispatch({ type: status.status == Status.Contributing && !busy ? "status_reset" : "status_change" });
-                    }} type="submit" className={"ring-1 ring-slate-900/5 shadow-lg text-white font-medium rounded-lg text-sm px-5 py-1 text-center " + (getClass(status.status))}>{getButtonLabel(status.status)}</button>
+                    }} type="submit" className={"ring-1 ring-slate-900/5 shadow-lg text-white font-medium rounded-lg text-sm px-5 py-1 text-center " + (getClass(status.status))} disabled={status.status == Status.Connecting || status.status == Status.Stopping}>{getButtonLabel(status.status)}</button>
                 </form>
 
                 {(status.status == Status.Contributing || status.status == Status.Stopping) && <div className="justify-center box-border inline-block">

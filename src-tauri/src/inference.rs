@@ -290,7 +290,7 @@ pub async fn download_model(window: tauri::Window) -> Result<PathBuf, String> {
     create_dir(&cache_dir).ok();
     cache_dir.push("model-q4k.gguf");
     if let Ok(mut file) = File::open(&cache_dir).map_err(|e| e.to_string()) {
-        file.seek(SeekFrom::End(0)).map_err(|e| e.to_string())?;;
+        file.seek(SeekFrom::End(0)).map_err(|e| e.to_string())?;
         if let Ok(len) = file.stream_position() {
             if len >= total_size {
                 return Ok(cache_dir);

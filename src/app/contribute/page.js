@@ -2,6 +2,7 @@
 import { invoke } from '@tauri-apps/api/tauri'
 import React, { useState, useReducer, useRef, useEffect } from 'react';
 import { writeText, readText } from '@tauri-apps/api/clipboard';
+import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/api/notification';
 
 const Status = {
     None: 0,
@@ -12,6 +13,10 @@ const Status = {
 
 function numberWithCommas(val) {
     return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function sleep(ms) {
+    return new Promise((resolve, _) => setTimeout(resolve, ms));
 }
 
 export default function Home() {
@@ -56,6 +61,11 @@ export default function Home() {
                     ret.ws = null;
                 }
                 break;
+            
+            case "reconnect":
+                ret.ws = new WebSocket("ws://" + serverAddress);
+                ret.status = Status.Connecting;
+                break;
 
             case "new_translation":
                 if (action.translation != "") {
@@ -78,24 +88,37 @@ export default function Home() {
                 return;
             }
 
-            setBusy(true);
-            let translation = await invoke('create_translation_response', { inputString: msg.data }).catch(alert);
-            setBusy(false);
-            status.ws.send(translation[0]);
-            dispatch({ type: "new_translation", request: msg.data, translation: translation[1] });
+            if (status.ws.readyState !== WebSocket.CLOSED) {
+                setBusy(true);
+                var translation = await invoke('create_translation_response', { inputString: msg.data }).catch(alert);
+                setBusy(false);
+            }
+            
+            if (status.ws.readyState !== WebSocket.CLOSED) {
+                status.ws.send(translation[0]);
+                dispatch({ type: "new_translation", request: msg.data, translation: translation[1] });
 
-            if (status.status == Status.Stopping) {
-                dispatch({ type: "status_change" });
+                if (status.status == Status.Stopping) {
+                    dispatch({ type: "status_change" });
+                }
             }
         };
 
-        const errorHandler = () => {
+        const errorHandler = async e => {
             if (status.status == Status.Connecting || status.status == Status.Contributing) {
-                alert("WebSocket connection failed");
-                dispatch({ type: busy ? "status_change" : "status_reset" });
+                let permissionGranted = await isPermissionGranted();
+                if (!permissionGranted) {
+                    const permission = await requestPermission();
+                    permissionGranted = permission === 'granted';
+                }
+                if (permissionGranted) {
+                    sendNotification({ title: 'Contribution Warning', body: 'WebSocket connection has closed: reconnecting in three seconds.' });
+                }
+                await sleep(3000);
+                dispatch({ type: "reconnect" });
             }
         };
-        status.ws.onerror = errorHandler;
+
         status.ws.onclose = errorHandler;
     }
 

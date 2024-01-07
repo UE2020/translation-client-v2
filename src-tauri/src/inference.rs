@@ -271,7 +271,7 @@ pub async fn create_translation_response(
 use futures_util::StreamExt;
 use std::cmp::min;
 use std::fs::{self, create_dir, File};
-use std::io::Write;
+use std::io::{Write, Seek, SeekFrom};
 
 #[tauri::command]
 pub async fn download_model(window: tauri::Window) -> Result<PathBuf, String> {
@@ -283,17 +283,20 @@ pub async fn download_model(window: tauri::Window) -> Result<PathBuf, String> {
     let total_size = res.content_length().ok_or(String::from(
         "Failed to get model content length",
     ))?;
-    let mut cache_dir = dirs::cache_dir().ok_or(String::from(
+    let mut cache_dir = dirs::data_local_dir().ok_or(String::from(
         "Failed to get system cache directory: not found",
     ))?;
     cache_dir.push("translation-client");
     create_dir(&cache_dir).ok();
     cache_dir.push("model-q4k.gguf");
-    if let Ok(metadata) = fs::metadata(&cache_dir) {
-        if metadata.len() >= total_size {
-            return Ok(cache_dir);
-        }
-    };
+    if let Ok(mut file) = File::open(&cache_dir).map_err(|e| e.to_string()) {
+        file.seek(SeekFrom::End(0)).map_err(|e| e.to_string())?;;
+        if let Ok(len) = file.stream_position() {
+            if len >= total_size {
+                return Ok(cache_dir);
+            }
+        };
+    }
     let mut file = File::create(&cache_dir).map_err(|e| e.to_string())?;
     let mut downloaded: u64 = 0;
     let mut stream = res.bytes_stream();

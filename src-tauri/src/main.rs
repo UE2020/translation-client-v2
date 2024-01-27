@@ -39,6 +39,7 @@ fn main() {
             inference::load_model,
             inference::download_model,
             inference::create_translation_response,
+            inference::translate_sentence,
             get_memory
         ])
         .run(tauri::generate_context!())

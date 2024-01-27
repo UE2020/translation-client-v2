@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 const Options = {
     Install: 0,
     Load: 1,
+    Inference: 3,
     None: 2,
 };
 
@@ -65,6 +66,32 @@ export default function Home() {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                         </svg>}
                         >Download & install the model for me</Button>
+                    </div>
+                    <div className="my-2 sm:my-4">
+                        <Button disabled={loadingState.loading} onClick={async () => {
+                            setLoadingState({ loading: true, chosenOption: Options.Inference });
+                            let caught = false;
+                            let path = await invoke('download_model').catch(e => {
+                                alert("Failed to download model: " + e);
+                                setLoadingState({ loading: false, chosenOption: Options.None });
+                                caught = true;
+                            });
+                            if (caught) return;
+                            let seconds = await invoke('load_model', { modelLocation: path }).catch(e => {
+                                alert("Failed to load model: " + e);
+                                setLoadingState({ loading: false, chosenOption: Options.None });
+                                caught = true
+                            });
+                            if (caught) return;
+                            router.push('/inference');
+                        }} description="Installs the model if needed and launches the inference interface. If the model has been installed, it will be reused." icon={loadingState.chosenOption == Options.Inference ? <svg className="animate-spin h-6 w-6 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg> : <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={iconClassName}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+                        </svg>
+                        }
+                        >Perform inference</Button>
                     </div>
                     <div className="my-2 sm:my-4 ml-0 sm:ml-4">
                         <Button disabled={loadingState.loading} onClick={async () => {

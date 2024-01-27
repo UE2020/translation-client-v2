@@ -245,7 +245,11 @@ pub async fn create_translation_response(
     input_string: String,
 ) -> Result<[String; 2], String> {
     let mut state = state.0.lock().unwrap();
-    let translation = state.pipeline.as_mut().expect("pipeline should be initialized").run(&format!("Example Latin: Puer canem vult.\nEnglish translation: The boy wants a dog.\n\nLatin: {}\nEnglish translation:", input_string.trim()), 140 * 3).map_err(|e| e.to_string())?;
+    let translation = state.pipeline
+        .as_mut()
+        .expect("pipeline should be initialized")
+        .run(&format!("Example Latin: Puer canem vult.\nEnglish translation: The boy wants a dog.\n\nLatin: {}\nEnglish translation:", input_string.trim()), 140 * 3)
+        .map_err(|e| e.to_string())?;
     use ring::digest;
     use urlencoding::encode;
     let now = SystemTime::now()
@@ -268,10 +272,21 @@ pub async fn create_translation_response(
     }
 }
 
+#[tauri::command]
+pub async fn translate_sentence(state: tauri::State<'_, StateWrapper>, input_string: String) -> Result<String, ()> {
+    let mut state = state.0.lock().unwrap();
+    let translation = state.pipeline
+        .as_mut()
+        .expect("pipeline should be initialized")
+        .run(&format!("Example Latin: Puer canem vult.\nEnglish translation: The boy wants a dog.\n\nLatin: {}\nEnglish translation:", input_string.trim()), usize::MAX)
+        .map_err(|e| e.to_string()).unwrap();
+    Ok(translation.trim().to_string())
+}
+
 use futures_util::StreamExt;
 use std::cmp::min;
-use std::fs::{self, create_dir, File};
-use std::io::{Write, Seek, SeekFrom};
+use std::fs::{create_dir, File};
+use std::io::{Seek, SeekFrom, Write};
 
 #[tauri::command]
 pub async fn download_model(window: tauri::Window) -> Result<PathBuf, String> {
@@ -280,9 +295,9 @@ pub async fn download_model(window: tauri::Window) -> Result<PathBuf, String> {
     )
     .await
     .map_err(|e| e.to_string())?;
-    let total_size = res.content_length().ok_or(String::from(
-        "Failed to get model content length",
-    ))?;
+    let total_size = res
+        .content_length()
+        .ok_or(String::from("Failed to get model content length"))?;
     let mut cache_dir = dirs::data_local_dir().ok_or(String::from(
         "Failed to get system cache directory: not found",
     ))?;

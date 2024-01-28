@@ -12,6 +12,8 @@ use candle_transformers::generation::LogitsProcessor;
 use hf_hub::{api::sync::Api, Repo, RepoType};
 use tokenizers::Tokenizer;
 
+use unidecode::unidecode;
+
 use crate::StateWrapper;
 
 /// This is a wrapper around a tokenizer to ensure that tokens can be returned to the user in a
@@ -140,7 +142,7 @@ impl TextGeneration {
         }
     }
 
-    fn run(&mut self, prompt: &str, sample_len: usize) -> Result<String> {
+    fn run<'a>(&mut self, prompt: &'a str, sample_len: usize, token_cb: Option<impl Fn(&str)>, max_len: usize) -> Result<String> {
         let old_model = self.model.clone();
         let mut output_tokens = String::new();
         self.tokenizer.clear();
@@ -151,7 +153,7 @@ impl TextGeneration {
             .map_err(E::msg)?
             .get_ids()
             .to_vec();
-        if tokens.len() > (140 * 3) {
+        if tokens.len() > max_len {
             return Ok(String::new());
         }
         let mut generated_tokens = 0usize;
@@ -192,11 +194,17 @@ impl TextGeneration {
                     break;
                 }
                 output_tokens.push_str(&t);
+                if let Some(ref token_cb) = token_cb {
+                    token_cb(&t);
+                }
             }
         }
         let dt = start_gen.elapsed();
         if let Some(rest) = self.tokenizer.decode_rest().map_err(E::msg)? {
             output_tokens.push_str(&rest);
+            if let Some(ref token_cb) = token_cb {
+                token_cb(&rest);
+            }
         }
         println!(
             "\n{generated_tokens} tokens generated ({:.2} token/s)",
@@ -248,7 +256,7 @@ pub async fn create_translation_response(
     let translation = state.pipeline
         .as_mut()
         .expect("pipeline should be initialized")
-        .run(&format!("Example Latin: Puer canem vult.\nEnglish translation: The boy wants a dog.\n\nLatin: {}\nEnglish translation:", input_string.trim()), 140 * 3)
+        .run(&format!("Example Latin: Puer canem vult.\nEnglish translation: The boy wants a dog.\n\nLatin: {}\nEnglish translation:", input_string.trim()), 140 * 3, None::<fn(&str)>, 140*3)
         .map_err(|e| e.to_string())?;
     use ring::digest;
     use urlencoding::encode;
@@ -273,12 +281,15 @@ pub async fn create_translation_response(
 }
 
 #[tauri::command]
-pub async fn translate_sentence(state: tauri::State<'_, StateWrapper>, input_string: String) -> Result<String, ()> {
+pub async fn translate_sentence(window: tauri::Window, state: tauri::State<'_, StateWrapper>, input_string: String) -> Result<String, ()> {
     let mut state = state.0.lock().unwrap();
     let translation = state.pipeline
         .as_mut()
         .expect("pipeline should be initialized")
-        .run(&format!("Example Latin: Puer canem vult.\nEnglish translation: The boy wants a dog.\n\nLatin: {}\nEnglish translation:", input_string.trim()), usize::MAX)
+        .run(&unidecode(&format!("Example Latin: Puer canem vult.\nEnglish translation: The boy wants a dog.\n\nLatin: {}\nEnglish translation:", input_string.trim())), usize::MAX, Some(|str: &str| {
+            window
+                .emit("translation-progress", str).ok();
+        }), usize::MAX)
         .map_err(|e| e.to_string()).unwrap();
     Ok(translation.trim().to_string())
 }

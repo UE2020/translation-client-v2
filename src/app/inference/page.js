@@ -14,7 +14,7 @@ export default function Home() {
         };
         const unlisten = listen('translation-progress', handleEvent);
         return async () => {
-            unlisten.then(u => u());
+            (await unlisten)();
         };
     }, [translatedText]);
     return (

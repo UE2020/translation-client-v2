@@ -20,7 +20,7 @@ export default function Home() {
     return (
         <>
             <div className="flex h-full bg-sky-100">
-                <textarea className="w-1/2 h-full p-10" placeholder="Enter text here..." onChange={e => setInputText(e.target.value)}></textarea>
+                <textarea className="w-1/2 h-full p-10 resize-none" placeholder="Enter text here..." onChange={e => setInputText(e.target.value)}></textarea>
                 <p className="w-1/2 h-full p-10 overflow-auto">{translatedText} {translatedText != '' ? <CopyButton copyTarget={translatedText} /> : null}</p>
             </div>
             <button onClick={async () => {
